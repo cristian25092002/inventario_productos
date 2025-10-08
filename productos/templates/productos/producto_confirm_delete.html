@@ -1,0 +1,169 @@
+{% extends 'productos/base.html' %}
+
+{% block title %}Eliminar Producto - Inventario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-md-8 col-lg-6">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'producto-list-html' %}" class="text-decoration-none">
+                        <i class="fas fa-home"></i> Inventario
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    <i class="fas fa-trash"></i> Eliminar Producto
+                </li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(45deg, #dc3545, #c82333);">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">Confirmar Eliminación</h4>
+                        <small class="opacity-75">Esta acción no se puede deshacer</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="alert alert-warning border-0 mb-4" role="alert" style="background: linear-gradient(45deg, #fff3cd, #ffeaa7);">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-warning fa-lg me-3 text-warning"></i>
+                        <div>
+                            <strong>¡Atención!</strong> 
+                            <span>Una vez eliminado, no podrás recuperar este producto.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="mb-4">¿Estás seguro de que deseas eliminar este producto?</h5>
+                
+                <!-- Información del producto -->
+                <div class="card mb-4 border-0" style="background: linear-gradient(45deg, #f8f9fa, #e9ecef);">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="card-title mb-2">
+                                    <i class="fas fa-box text-primary me-2"></i> 
+                                    <strong>{{ producto.nombre }}</strong>
+                                </h6>
+                                {% if producto.descripcion %}
+                                    <p class="card-text text-muted mb-2">
+                                        <i class="fas fa-align-left me-2"></i>
+                                        {{ producto.descripcion }}
+                                    </p>
+                                {% else %}
+                                    <p class="card-text text-muted mb-2 fst-italic">
+                                        <i class="fas fa-align-left me-2"></i>
+                                        Sin descripción
+                                    </p>
+                                {% endif %}
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> 
+                                    Creado: {{ producto.creado|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="price-display">
+                                    <div class="h4 mb-0 price">${{ producto.precio }}</div>
+                                    <small class="text-muted">Precio actual</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <h6 class="mb-2">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        Consecuencias de la eliminación:
+                    </h6>
+                    <ul class="mb-0 text-muted">
+                        <li>El producto desaparecerá permanentemente del inventario</li>
+                        <li>No podrás acceder a su información en el futuro</li>
+                        <li>Esta acción no afectará otros productos</li>
+                    </ul>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-between">
+                    <a href="{% url 'producto-list-html' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i> 
+                        No, mantener producto
+                    </a>
+                    <form method="post" style="display: inline;" id="deleteForm">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg" id="confirmDeleteBtn">
+                            <i class="fas fa-trash me-2"></i> 
+                            Sí, eliminar producto
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de ayuda -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fas fa-question-circle me-1"></i>
+                ¿Necesitas ayuda? 
+                <a href="#" class="text-decoration-none">Contacta soporte</a>
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    
+    deleteForm.addEventListener('submit', function(e) {
+        // Mostrar estado de carga en el botón
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Eliminando...';
+        
+        // Opcional: agregar un pequeño delay para mejor UX
+        setTimeout(() => {
+            // El formulario se enviará normalmente después del timeout
+        }, 500);
+    });
+    
+    // Agregar confirmación adicional con doble clic
+    let clickCount = 0;
+    confirmBtn.addEventListener('click', function(e) {
+        clickCount++;
+        
+        if (clickCount === 1) {
+            e.preventDefault();
+            this.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> ¿Estás seguro? Haz clic de nuevo';
+            this.classList.remove('btn-danger');
+            this.classList.add('btn-warning');
+            
+            // Reset después de 3 segundos si no hace clic de nuevo
+            setTimeout(() => {
+                if (clickCount === 1) {
+                    clickCount = 0;
+                    this.innerHTML = '<i class="fas fa-trash me-2"></i> Sí, eliminar producto';
+                    this.classList.remove('btn-warning');
+                    this.classList.add('btn-danger');
+                }
+            }, 3000);
+        } else if (clickCount === 2) {
+            // Permitir que el formulario se envíe en el segundo clic
+            clickCount = 0;
+        }
+    });
+});
+</script>
+{% endblock %}

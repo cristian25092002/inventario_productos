@@ -1,0 +1,283 @@
+{% extends 'productos/base.html' %}
+
+{% block title %}Lista de Productos - Inventario{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">
+        <i class="fas fa-boxes text-primary"></i> 
+        Lista de Productos
+    </h1>
+    <div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus"></i> Agregar Producto
+        </button>
+        <a href="/api/productos/" class="btn btn-outline-info">
+            <i class="fas fa-code"></i> Ver API
+        </a>
+    </div>
+</div>
+
+{% if productos %}
+    <div class="row">
+        {% for producto in productos %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card product-card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">
+                        <i class="fas fa-box text-primary"></i> 
+                        {{ producto.nombre }}
+                    </h5>
+                    {% if producto.descripcion %}
+                        <p class="card-text text-muted">{{ producto.descripcion }}</p>
+                    {% else %}
+                        <p class="card-text text-muted fst-italic">Sin descripción</p>
+                    {% endif %}
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">${{ producto.precio }}</span>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editProductModal"
+                                        data-id="{{ producto.id }}"
+                                        data-nombre="{{ producto.nombre }}"
+                                        data-descripcion="{{ producto.descripcion }}"
+                                        data-precio="{{ producto.precio }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a href="{% url 'producto-delete-html' producto.id %}" 
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt"></i> 
+                            Creado: {{ producto.creado|date:"d/m/Y H:i" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-box-open fa-5x text-muted mb-3"></i>
+        <h3 class="text-muted">No hay productos en el inventario</h3>
+        <p class="text-muted">Comienza agregando tu primer producto</p>
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="fas fa-plus"></i> Agregar Primer Producto
+        </button>
+    </div>
+{% endif %}
+
+<!-- Modal para Agregar Producto -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus text-success"></i> Agregar Nuevo Producto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addProductForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre del Producto *</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="precio" class="form-label">Precio *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="precio" name="precio" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Agregar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Producto -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit text-primary"></i> Editar Producto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editProductForm">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="mb-3">
+                        <label for="edit-nombre" class="form-label">Nombre del Producto *</label>
+                        <input type="text" class="form-control" id="edit-nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="edit-descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-precio" class="form-label">Precio *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="edit-precio" name="precio" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar modal de edición
+    const editModal = document.getElementById('editProductModal');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const productId = button.getAttribute('data-id');
+        const productName = button.getAttribute('data-nombre');
+        const productDesc = button.getAttribute('data-descripcion');
+        const productPrice = button.getAttribute('data-precio');
+        
+        document.getElementById('edit-id').value = productId;
+        document.getElementById('edit-nombre').value = productName;
+        document.getElementById('edit-descripcion').value = productDesc || '';
+        document.getElementById('edit-precio').value = productPrice;
+    });
+
+    // Manejar envío del formulario de agregar producto
+    document.getElementById('addProductForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
+        
+        fetch('/ajax/productos/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.id) {
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Producto "${data.nombre}" agregado exitosamente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                // Cerrar modal y recargar
+                bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al agregar el producto. Por favor, verifica los datos e inténtalo de nuevo.');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Agregar Producto';
+        });
+    });
+
+    // Manejar envío del formulario de editar producto
+    document.getElementById('editProductForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const productId = document.getElementById('edit-id').value;
+        const submitBtn = this.querySelector('button[type="submit"]');
+        
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        
+        // Convertir FormData a JSON para PUT request
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        
+        fetch(`/ajax/productos/${productId}/`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.id) {
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Producto "${data.nombre}" actualizado exitosamente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
+                
+                // Cerrar modal y recargar
+                bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar el producto. Por favor, verifica los datos e inténtalo de nuevo.');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Producto';
+        });
+    });
+
+
+});
+</script>
+{% endblock %}
