@@ -1,0 +1,221 @@
+{% extends 'productos/base.html' %}
+
+{% block title %}Demo del Frontend - Inventario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-5">
+            <h1 class="display-4">
+                <i class="fas fa-rocket me-3"></i>
+                ¡Bienvenido al Sistema de Inventario!
+            </h1>
+            <p class="lead">Una interfaz moderna y completa para gestionar tus productos</p>
+            <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.3);">
+            <p>Explora todas las funcionalidades disponibles con esta demostración interactiva.</p>
+            <a class="btn btn-light btn-lg" href="{% url 'producto-list-html' %}" role="button">
+                <i class="fas fa-play me-2"></i>
+                Comenzar Demo
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-list fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Vista de Lista</h5>
+                <p class="card-text">Visualiza todos tus productos en un diseño de tarjetas responsivo con información detallada.</p>
+                <a href="{% url 'producto-list-html' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-eye me-1"></i> Ver Lista
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Agregar Productos</h5>
+                <p class="card-text">Utiliza modales interactivos para agregar nuevos productos de forma rápida y sencilla.</p>
+                <button class="btn btn-outline-success" onclick="showFeatureDemo('add')">
+                    <i class="fas fa-plus me-1"></i> Ver Demo
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-edit fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Editar Productos</h5>
+                <p class="card-text">Modifica la información de tus productos existentes con formularios pre-completados.</p>
+                <button class="btn btn-outline-warning" onclick="showFeatureDemo('edit')">
+                    <i class="fas fa-edit me-1"></i> Ver Demo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Eliminación Segura</h5>
+                <p class="card-text">Páginas dedicadas de confirmación con doble verificación para eliminar productos de forma segura.</p>
+                <button class="btn btn-outline-danger" onclick="showFeatureDemo('delete')">
+                    <i class="fas fa-trash me-1"></i> Ver Demo
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-mobile-alt fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Diseño Responsivo</h5>
+                <p class="card-text">Interfaz optimizada para todos los dispositivos: móviles, tablets y computadoras de escritorio.</p>
+                <button class="btn btn-outline-info" onclick="showFeatureDemo('responsive')">
+                    <i class="fas fa-mobile me-1"></i> Ver Demo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0 bg-light">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-rocket text-primary me-2"></i>
+                    Características Técnicas
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> Bootstrap 5 para diseño responsivo</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Font Awesome para iconografía</li>
+                            <li><i class="fas fa-check text-success me-2"></i> AJAX para operaciones sin recarga</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Django REST Framework para API</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> Validación de formularios en tiempo real</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Mensajes de confirmación y error</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Estados de carga en botones</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Navegación con breadcrumbs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de demo de características -->
+<div class="modal fade" id="featureModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="featureModalTitle">Demo de Característica</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="featureModalBody">
+                <!-- El contenido se cargará dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <a href="{% url 'producto-list-html' %}" class="btn btn-primary">Probar en Vivo</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showFeatureDemo(feature) {
+    const modal = new bootstrap.Modal(document.getElementById('featureModal'));
+    const title = document.getElementById('featureModalTitle');
+    const body = document.getElementById('featureModalBody');
+    
+    const demos = {
+        'add': {
+            title: '➕ Agregar Productos',
+            content: `
+                <div class="text-center mb-4">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f8f9fa'/%3E%3Ctext x='100' y='75' text-anchor='middle' fill='%23666' font-size='14'%3EModal de Agregar%3C/text%3E%3C/svg%3E" alt="Add Product Demo" class="img-fluid rounded">
+                </div>
+                <p><strong>Funcionalidad:</strong> Modal interactivo para agregar nuevos productos</p>
+                <ul>
+                    <li>Formulario con validación en tiempo real</li>
+                    <li>Campos: Nombre, Descripción, Precio</li>
+                    <li>Estados de carga durante el envío</li>
+                    <li>Confirmación visual de éxito</li>
+                </ul>
+            `
+        },
+        'edit': {
+            title: '✏️ Editar Productos',
+            content: `
+                <div class="text-center mb-4">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23fff3cd'/%3E%3Ctext x='100' y='75' text-anchor='middle' fill='%23856404' font-size='14'%3EModal de Editar%3C/text%3E%3C/svg%3E" alt="Edit Product Demo" class="img-fluid rounded">
+                </div>
+                <p><strong>Funcionalidad:</strong> Edición rápida con formularios pre-completados</p>
+                <ul>
+                    <li>Formulario pre-completado con datos actuales</li>
+                    <li>Actualización vía AJAX</li>
+                    <li>Feedback inmediato de cambios</li>
+                    <li>Validación de datos modificados</li>
+                </ul>
+            `
+        },
+        'delete': {
+            title: '🗑️ Eliminación Segura',
+            content: `
+                <div class="text-center mb-4">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23f8d7da'/%3E%3Ctext x='100' y='75' text-anchor='middle' fill='%23721c24' font-size='14'%3EPágina de Confirmación%3C/text%3E%3C/svg%3E" alt="Delete Product Demo" class="img-fluid rounded">
+                </div>
+                <p><strong>Funcionalidad:</strong> Página dedicada para confirmación de eliminación</p>
+                <ul>
+                    <li>Vista completa del producto a eliminar</li>
+                    <li>Doble confirmación para mayor seguridad</li>
+                    <li>Información sobre las consecuencias</li>
+                    <li>Navegación clara para cancelar</li>
+                </ul>
+            `
+        },
+        'responsive': {
+            title: '📱 Diseño Responsivo',
+            content: `
+                <div class="text-center mb-4">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150' viewBox='0 0 200 150'%3E%3Crect width='200' height='150' fill='%23d1ecf1'/%3E%3Ctext x='100' y='75' text-anchor='middle' fill='%230c5460' font-size='14'%3EResponsive Design%3C/text%3E%3C/svg%3E" alt="Responsive Demo" class="img-fluid rounded">
+                </div>
+                <p><strong>Funcionalidad:</strong> Adaptación automática a diferentes dispositivos</p>
+                <ul>
+                    <li>📱 Móviles: Layout de 1 columna</li>
+                    <li>📱 Tablets: Layout de 2 columnas</li>
+                    <li>💻 Desktop: Layout de 3 columnas</li>
+                    <li>🔄 Navegación colapsible en móviles</li>
+                </ul>
+            `
+        }
+    };
+    
+    if (demos[feature]) {
+        title.textContent = demos[feature].title;
+        body.innerHTML = demos[feature].content;
+        modal.show();
+    }
+}
+</script>
+{% endblock %}

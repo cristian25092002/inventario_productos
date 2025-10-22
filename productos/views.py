@@ -41,11 +41,13 @@ class ProductoDeleteView(DeleteView):
     success_url = reverse_lazy('producto-list-html')
     context_object_name = 'producto'
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form):
+        "Meotodo modenor para logica personalizada de eliminacion"
         producto = self.get_object()
-        messages.success(request, f'El producto "{producto.nombre}" eliminado exitosamente.')
-        return super().delete(request, *args, **kwargs)
-    
+        print("----------------------------------------------------------")
+        print(f"DELETE request received - Elimnando Producto: {producto.nombre} (ID: {producto.id})")
+        messages.success(self.request, f'El producto "{producto.nombre}" eliminado exitosamente.')
+        return super().form_valid(form)    
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -55,11 +57,15 @@ class ProductoAjaxView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         """Crear nuevo producto via AJAX"""
+        print("++++++++++++++++++++++++++++++++++++++")
+        print("POST request received")
+        print(request.body)
         try:
             data = {
                 'nombre': request.POST.get('nombre'),
                 'descripcion': request.POST.get('descripcion', ''),
                 'precio': request.POST.get('precio'),
+                'stock': request.POST.get('stock', 0),
             }
         
             producto = Producto.objects.create(**data)
@@ -69,6 +75,7 @@ class ProductoAjaxView(generics.GenericAPIView):
             'descripcion': producto.descripcion,
             'precio': str(producto.precio),
             'creado': producto.creado.strftime('%d/%m/%Y %H:%M'),
+            'stock': producto.stock,
         })
         except Exception as e:  
             return JsonResponse({'error': str(e)}, status=400)
@@ -83,6 +90,7 @@ class ProductoAjaxView(generics.GenericAPIView):
             producto.nombre = data.get('nombre', producto.nombre)
             producto.descripcion = data.get('descripcion', producto.descripcion)
             producto.precio = data.get('precio', producto.precio)
+            producto.stock = data.get('stock', producto.stock)
             producto.save()
             return JsonResponse({
                 'id': producto.id,
@@ -90,6 +98,7 @@ class ProductoAjaxView(generics.GenericAPIView):
                 'descripcion': producto.descripcion,
                 'precio': str(producto.precio),
                 'creado': producto.creado.strftime('%d/%m/%Y %H:%M'),
+                'stock': producto.stock,
             })
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
