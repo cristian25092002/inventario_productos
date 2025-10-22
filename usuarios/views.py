@@ -6,9 +6,18 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+from django.db import IntegrityError
 from .serializers import UsuarioSerializer
 from rest_framework import generics
 from .models import Usuario
+
+def _to_bool(val):
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return False
+    v = str(val).strip().lower()
+    return v in ('true', '1', 'yes', 'on')
 
 # Listar usuarios
 class UsuarioListAPIView(generics.ListAPIView):
@@ -21,7 +30,6 @@ class UsuarioDeleteAPIView(generics.DestroyAPIView):
     serializer_class = UsuarioSerializer
 
 # Vistas HTML para frontend
-
 class UsuarioListView(ListView):
     model = Usuario
     template_name = 'usuarios/usuario_list.html'
@@ -52,23 +60,27 @@ class UsuarioAjaxView(generics.GenericAPIView):
     serializer_class = UsuarioSerializer
 
     def post(self, request, *args, **kwargs):
-        """Crear nuevo usuario via AJAX"""
+        """Crear nuevo usuario via AJAX (espera FormData)"""
         try:
             nombre = request.POST.get('nombre')
             identificacion = request.POST.get('identificacion')
             email = request.POST.get('email')
             activo_str = request.POST.get('activo', 'true')
-            activo = True if activo_str == 'true' else False
+            activo = _to_bool(activo_str)
 
             if not nombre or not identificacion or not email:
-                return JsonResponse({'error': 'Faltan campos requeridos.'}, status=400)
+                return JsonResponse({'error': 'Faltan campos requeridos: nombre, identificacion o email.'}, status=400)
 
-            usuario = Usuario.objects.create(
-                nombre=nombre,
-                identificacion=identificacion,
-                email=email,
-                activo=activo
-            )
+            try:
+                usuario = Usuario.objects.create(
+                    nombre=nombre,
+                    identificacion=identificacion,
+                    email=email,
+                    activo=activo
+                )
+            except IntegrityError as ie:
+                return JsonResponse({'error': 'Identificación o email ya registrados.'}, status=400)
+
             return JsonResponse({
                 'id': usuario.id,
                 'nombre': usuario.nombre,
@@ -81,15 +93,43 @@ class UsuarioAjaxView(generics.GenericAPIView):
             return JsonResponse({'error': str(e)}, status=400)
 
     def put(self, request, pk, *args, **kwargs):
-        """Actualizar usuario via AJAX"""
+        """Actualizar usuario via AJAX (acepta JSON o form-encoded)"""
         try:
             usuario = get_object_or_404(Usuario, pk=pk)
-            data = json.loads(request.body)
-            usuario.nombre = data.get('nombre', usuario.nombre)
-            usuario.identificacion = data.get('identificacion', usuario.identificacion)
-            usuario.email = data.get('email', usuario.email)
-            usuario.activo = data.get('activo', usuario.activo)
-            usuario.save()
+
+            # Soportar JSON (Content-Type: application/json) o form-encoded
+            content_type = request.META.get('CONTENT_TYPE', '')
+            if 'application/json' in content_type:
+                try:
+                    payload = json.loads(request.body.decode('utf-8') or '{}')
+                except json.JSONDecodeError:
+                    return JsonResponse({'error': 'JSON inválido'}, status=400)
+                nombre = payload.get('nombre', usuario.nombre)
+                identificacion = payload.get('identificacion', usuario.identificacion)
+                email = payload.get('email', usuario.email)
+                activo = _to_bool(payload.get('activo', usuario.activo))
+            else:
+                # form-encoded (puede venir como FormData)
+                nombre = request.POST.get('nombre', usuario.nombre)
+                identificacion = request.POST.get('identificacion', usuario.identificacion)
+                email = request.POST.get('email', usuario.email)
+                activo = _to_bool(request.POST.get('activo', usuario.activo))
+
+            # Validaciones mínimas
+            if not nombre or not identificacion or not email:
+                return JsonResponse({'error': 'Los campos nombre, identificacion y email no pueden quedar vacíos.'}, status=400)
+
+            # Aplicar cambios
+            usuario.nombre = nombre
+            usuario.identificacion = identificacion
+            usuario.email = email
+            usuario.activo = activo
+
+            try:
+                usuario.save()
+            except IntegrityError:
+                return JsonResponse({'error': 'Identificación o email ya registrados por otro usuario.'}, status=400)
+
             return JsonResponse({
                 'id': usuario.id,
                 'nombre': usuario.nombre,
