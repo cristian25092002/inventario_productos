@@ -10,12 +10,25 @@ from .serializers import ProductoSerializer
 from rest_framework import generics
 from .models import Producto
 
-
-
 #Listar productos
-class ProductoListAPIView(generics.ListAPIView):
+class ProductoListAPIView(generics.ListCreateAPIView):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return JsonResponse({
+                'error': 'Datos invalidos',
+                'detalles': serializer.errors
+            }, status=400)
+        try:
+            self.perform_create(serializer)
+            return JsonResponse(serializer.data, status=200)
+        except Exception as e:
+            return JsonResponse({
+                'error': 'Error interno del servidor',
+                'detalles': str(e)}, status=500)
 
 #Eliminar productos
 class ProductoDeleteAPIView(generics.DestroyAPIView):
@@ -48,6 +61,58 @@ class ProductoDeleteView(DeleteView):
         print(f"DELETE request received - Elimnando Producto: {producto.nombre} (ID: {producto.id})")
         messages.success(self.request, f'El producto "{producto.nombre}" eliminado exitosamente.')
         return super().form_valid(form)    
+
+class ProductoDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return JsonResponse(serializer.data, status=200)
+        except Exception as e:
+            return JsonResponse({
+            'error': 'Producto no encontrado',
+            'detalles': str(e)}, status=404)
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            if not serializer.is_valid():
+                return JsonResponse({
+                    'error': 'Datos invalidos',
+                    'detalles': serializer.errors
+                }, status=400)
+            self.perform_update(serializer)
+            return JsonResponse(serializer.data, status=200)
+        except Producto.DoesNotExist:
+            return JsonResponse({
+                'error': 'Producto no encontrado'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'error': 'Error interno del servidor',
+                'detalles': str(e)
+            }, status=500)
+    
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return JsonResponse({'mensaje': 'Producto eliminado exitosamente.'}, status=204)
+        except Producto.DoesNotExist:
+            return JsonResponse({
+                'error': 'Producto no encontrado'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'error': 'Error interno del servidor',
+                'detalles': str(e)
+            }, status=500)
+            
 
 
 @method_decorator(csrf_exempt, name='dispatch')

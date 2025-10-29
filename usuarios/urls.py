@@ -1,13 +1,13 @@
 from django.urls import path
 from .views import (
     UsuarioListView, UsuarioDeleteView, DemoView,
-    UsuarioListAPIView, UsuarioDeleteAPIView, UsuarioAjaxView
+    UsuarioListAPIView, UsuarioDeleteAPIView, UsuarioAjaxView,UsuarioDetailAPIView
 )
 
 urlpatterns = [
     # API Endpoints
     path('api/usuarios/', UsuarioListAPIView.as_view(), name='usuario-list-api'),
-    path('api/usuarios/<int:pk>/', UsuarioDeleteAPIView.as_view(), name='usuario-delete-api'),
+    path('api/usuarios/<int:pk>/', UsuarioDetailAPIView.as_view(), name='usuario-delete-api'),
     path('api/usuarios/<int:pk>/delete/', UsuarioDeleteAPIView.as_view(), name='usuario-delete-api'),
 
     # AJAX Endpoints para el frontend
